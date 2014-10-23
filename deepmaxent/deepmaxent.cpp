@@ -10,13 +10,13 @@ typedef float real;
 typedef vector<real> Datapoint;
 typedef vector<Datapoint> Dataset;
 
-class Tree; //TODO
+class Feature; //such as a tree, TODO
 
 struct Density {
   vector<vector<real> > w;
-  vector<Tree> phi;
+  vector<Feature> phi;
   Density() {}
-  Density(const vector<vector<real> > & w, const vector<Tree> & phi)
+  Density(const vector<vector<real> > & w, const vector<Feature> & phi)
     :w(w), phi(phi) {}
 };
 
@@ -24,10 +24,29 @@ inline real sgn (real x) {
   return (x >= 0.) ? 1. : -1.;
 }
 
-real Rm (const Tree & phi) // TODO
-real EphiPW(const Tree & phi, const Dataset & S, const Density & pw, int j); // TODO
-real EphiS (const Tree & phi, const Dataset & S, int j); // TODO
-
+real Rm (const Feature & phi) // TODO
+real EphiPW(const Feature & phi, const Dataset & S, const Density & pw, int j); // TODO
+real EphiS (const Feature & phi, const Dataset & S, int j); // TODO
+real Step(const int best_k, const int best_j, const vector<vector<real> > & w, 
+const vector<Feature> & phi, const int Lambda, const Dataset & S, const Density & pw, const real beta_k) {
+  const int k = best_k;
+  const int j = best_j;
+  const real wkj = w[k][j];
+  const real EphiPWkj = EphiPW(phi[k], S, pw, j);
+  const real EphiSkj = EphiS(phi[k], S, j);
+  const real pbtp = EphiPWkj + Lambda;
+  const real pbtm = EphiPWkj - Lambda;
+  const real pbp = EphiSkj + Lambda;
+  const real pbm = EphiSkj - Lambda;
+  const real e2wL = exp(2. * wkj * Lambda);
+  beta = (pbtp * pbm * e2wL - pbp * pbtm) / (pbtp * e2wL - pbtm);
+  if (abs(beta) <= beta_k)
+    eta = -wkj;
+  elseif (beta > beta_k)
+    eta = 0.5 / Lambda * log((pbtm * (beta_k - pbp)) / (pbtp * (beta_k - pbm)));
+  else
+    eta = 0.5 / Lambda * log((pbtm * (beta_k + pbp)) / (pbtp * (beta_k + pbm)));
+}
 // S : dataset
 // T : number of iterations
 // N : array. N[k] is the dimension of the output of tree k
@@ -45,7 +64,7 @@ Density DeepMaxent(const Dataset & S, int T) {
   int p = 0;
   vector<int> N;
   vector<vector<real> > w;
-  vector<Tree> phi;
+  vector<Feature> phi;
   const real tolerance = 1e-3;
   real beta = 0.1; // TODO why ???
   real Lambda = 100.; // TODO
@@ -56,11 +75,10 @@ Density DeepMaxent(const Dataset & S, int T) {
     int best_k, best_j = 0;
     for (int k = 0; k < phi.size(); ++k) {
       float beta_k = 2. * Rm(phi[k]) + beta;
-      const vector<real> epsK = EphiPW(phi[k],)
       for (int j = 0; j < N[k]; ++j) {
 	real d;
 	const real wkj = w[k][j];
-	const real eps = EphiPW(phi[k], S, pw, j) - EphiS(phi[k], S, j);
+	const real eps = EphiPW(phi[k], S, pw, j) - EphiS(phi[k], S, j);//TODO optimize
 	if (abs(wkj) > tolerance)
 	  d = beta_k * sgn(wkj) + eps;
 	else if (abs(eps) <= beta_k)
@@ -74,24 +92,8 @@ Density DeepMaxent(const Dataset & S, int T) {
 	}
       }
     }
+    eta = Step(best_k, best_j, w, phi, Lambda, S, pw, beta_k);
     
-    const int k = best_k;
-    const int j = best_j;
-    const real wkj = w[k][j];
-    const real EphiPWkj = EphiPW(phi[k], S, pw, j);
-    const real EphiSkj = EphiS(phi[k], S, j);
-    const real pbtp = EphiPWkj + Lambda;
-    const real pbtm = EphiPWkj - Lambda;
-    const real pbp = EphiSkj + Lambda;
-    const real pbm = EphiSkj - Lambda;
-    const real e2wL = exp(2. * wkj * Lambda);
-    beta = (pbtp * pbm * e2wL - pbp * pbtm) / (pbtp * e2wL - pbtm);
-    if (abs(beta) <= beta_k)
-      eta = -wkj;
-    elseif (beta > beta_k)
-      eta = 0.5 / Lambda * log((pbtm * (beta_k - pbp)) / (pbtp * (beta_k - pbm)));
-    else
-      eta = 0.5 / Lambda * log((pbtm * (beta_k + pbp)) / (pbtp * (beta_k + pbm)));
     w[k][j] += eta;
     
     pw = Density(w, phi);
