@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <limits>
+#include <cstdlib>
 #include "common.hpp"
 #include "density.hpp"
 #include "feature.hpp"
@@ -18,6 +20,11 @@ Density::Density(const vector<vector<real> > & w,
 	t += w[j][k] * phix[k];
     }
     expFactors[i] = exp(t);
+    if (expFactors[i] > numeric_limits<real>::max()) {
+      cerr << "The factor is too big for machine precision. "
+	   << "Likely that w became too large" << endl;
+      exit(0);
+    }
   }
   for (int i = 0; i < expFactors.size(); ++i)
     normalizer += expFactors[i];
@@ -35,6 +42,5 @@ real Density::eval(const Datapoint & X) const {
 }
 
 real Density::eval(int i) const {
-  cout << i << " " << expFactors.size() << endl;
   return expFactors[i] / normalizer;
 }

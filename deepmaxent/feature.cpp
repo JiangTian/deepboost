@@ -21,18 +21,13 @@ vector<real> Feature::EphiS(const Dataset & S) const {
 }
 
 vector<real> Feature::EphiPW(const Dataset & S, const Density & pw) const {
-  cout << "ephipw" << endl;
   vector<real> E(this->size(), 0.);
   for (int i = 0; i < S.size(); ++i) {
-    cout << "i=" << i << endl;
     real pwsi = pw.eval(i);
-    cout << "pwsi ok" << endl;
     vector<real> phix = this->eval(S[i]);
-    cout << "phix ok" << endl;
     for (int j = 0; j < this->size(); ++j)
       E[j] += pwsi * phix[j];
   }
-  cout << "ephipw ok" << endl;
   return E;
 }
 
@@ -84,7 +79,8 @@ real FeatureThreshold::RademacherComplexity() const {
 
 // FeatureHinge
 vector<real> FeatureHinge::eval(const Datapoint & X) const {
-  real out = (real)(int)(X[i] > threshold) * min((real)1., (X[i] - threshold)/(b - threshold));
+  real out = max((real)0., min((real)1., (X[i] - threshold) / b));
+  //real out = (real)(int)(X[i] > threshold) * min((real)1., (X[i] - threshold)/b);
   return vector<real>(1, out);
 }
 

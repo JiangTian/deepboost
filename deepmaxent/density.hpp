@@ -7,7 +7,7 @@
 class Feature;
 
 class Density {
-private:
+public:
   std::vector<std::vector<real> > w;
   std::vector<Feature*> phi;
   std::vector<real> expFactors; // = exp(w_t phi(x) )

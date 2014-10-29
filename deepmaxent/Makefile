@@ -1,2 +1,2 @@
 all:
-	g++ -g feature.cpp deepmaxent.cpp density.cpp main.cpp
+	g++ -O3 feature.cpp deepmaxent.cpp density.cpp main.cpp
