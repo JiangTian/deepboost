@@ -3,7 +3,7 @@
 
 #include <vector>
 
-typedef float real;
+typedef double real;
 typedef std::vector<real> Datapoint;
 typedef std::vector<Datapoint> Dataset;
 

@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cfloat>
 #include "deepmaxent.hpp"
+#include "data.hpp"
 using namespace std;
 
 real normal() {
@@ -16,18 +17,29 @@ real normal() {
 }
 
 int main(int argc, char* argv[]) {
+
+#if 0 // dummy dataset
   Dataset S;
   int nDatapoints = 42;
   int inputDim = 10;
-
   for (int i = 0; i < nDatapoints; ++i) {
     Datapoint p(inputDim);
     for (int j = 0; j < inputDim; ++j)
       p[j] = normal();
     S.push_back(p);
   }
+#endif
 
-  Density pw = DeepMaxent(S, 10000);
+  // Dataset S = readElNino("data/tao-all2.dat");
+  Dataset S = readIris("data/iris.data");
+  
+  for (int i = 0; i < 10; ++i) {
+    for (int j = 0; j < S[i].size(); ++j)
+      cout << S[i][j] << " ";
+    cout << endl;
+  }
+
+  Density pw = DeepMaxent(S, 10);
 
 #if 0
   for (int i = 0; i < pw.w.size(); ++i)

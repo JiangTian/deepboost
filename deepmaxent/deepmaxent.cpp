@@ -67,7 +67,8 @@ Density DeepMaxent(const Dataset & S, int T) {
     Feature* newFeature = new FeatureRaw(i);
     phi.push_back(newFeature);
   }
-  //  adding monomial2 features											      
+  
+  //  adding monomial2 features	      
   for (int i = 0; i < inputDim; ++i)
     for (int j = 0; j <= i; ++j) {
       Feature* newFeature = new FeatureMonomial2(i, j);
@@ -83,7 +84,7 @@ Density DeepMaxent(const Dataset & S, int T) {
     phi.push_back(newFeature);
   }
 #endif
-#if 0
+  /*
   //  adding threshold features
   {
     vector<real> sortedInput;
@@ -99,8 +100,8 @@ Density DeepMaxent(const Dataset & S, int T) {
 	phi.push_back(newFeature);
       }
     }
-  }
-#endif
+    }*/
+  /*
   //  adding hinge features
   {
     real b = 2;
@@ -116,19 +117,19 @@ Density DeepMaxent(const Dataset & S, int T) {
         phi.push_back(newFeature);
       }
     }
-  }
+    }*/
 
 
   // initial distribution (all w's = 1)
   for (int i = 0; i < phi.size(); ++i)
-    w.push_back(vector<real>(phi[i]->size(), 0.1));
+    w.push_back(vector<real>(phi[i]->size(), 0.));
   Density pw(w, phi, S);
 
   // compute lambda FOR NOW beta = beta_k \forall k
   real Lambda = 0;
   for (int i = 0; i < S.size(); ++i)
     for (int j = 0; j < S[i].size(); ++j)
-      Lambda = max(Lambda, S[i][j]);
+      Lambda = max(Lambda, abs(S[i][j]));
   Lambda += beta;
 
   cout << "size of phi=" << phi.size() << endl;
@@ -151,8 +152,9 @@ Density DeepMaxent(const Dataset & S, int T) {
 	else if (abs(eps) <= beta_k)
 	  d = 0.;
 	else
-	  d = - beta_k * sgn(wkj) + eps;
-	//cout << "d=" << d << endl;
+	  d = - beta_k * sgn(eps) + eps;
+	cout << "d=" << d << " eps=" << eps << " beta_k=" << beta_k
+	     << " EphiPW=" << EphiPW[j] << " EphiS=" << EphiS[j] << endl;
 	if (abs(d) > best_abs_d) {
 	  best_abs_d = abs(d);
 	  best_k = k;
