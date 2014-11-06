@@ -57,6 +57,16 @@ void Density::precomputeFactors(const Dataset & S, vector<real> & expFactors,
     normalizer += expFactors[i];
 }
 
+real Density::evalS(const Datapoint & X) const {
+  real t = 0.;
+  for (int j = 0; j < phi.size(); ++j) {
+    vector<real> phix = phi[j]->eval(X);
+    for (int k = 0; k < phix.size(); ++k)
+      t += w[j][k] * phix[k];
+  }
+  return exp(t) / normalizerS; // TODO: this is not a probability 
+}
+
 real Density::evalS(int i) const {
   return expFactorsS[i] / normalizerS;
 }

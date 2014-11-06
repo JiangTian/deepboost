@@ -68,13 +68,15 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
     Feature* newFeature = new FeatureRaw(i);
     phi.push_back(newFeature);
   }
-  
+
+#if 0  
   //  adding monomial2 features	      
   for (int i = 0; i < inputDim; ++i)
     for (int j = 0; j <= i; ++j) {
       Feature* newFeature = new FeatureMonomial2(i, j);
       phi.push_back(newFeature);
     }
+#endif
 
   //  adding categorical features
 #if 0
@@ -85,7 +87,7 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
     phi.push_back(newFeature);
   }
 #endif
-  /*
+
   //  adding threshold features
   {
     vector<real> sortedInput;
@@ -101,7 +103,7 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
 	phi.push_back(newFeature);
       }
     }
-    }*/
+  }
   /*
   //  adding hinge features
   {
@@ -170,7 +172,7 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
     
     w[best_k][best_j] += eta;
 
-#if 1
+#if 0
     for (int i = 0; i < pw.w.size(); ++i)
       for (int j = 0; j < pw.w[i].size(); ++j)
 	cout << pw.w[i][j] << " ";

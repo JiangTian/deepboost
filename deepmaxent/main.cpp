@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
 #if 1 // dummy dataset
   Dataset S;
   int nDatapoints = 42;
-  int inputDim = 10;
+  int inputDim = 4;
   for (int i = 0; i < nDatapoints; ++i) {
     Datapoint p(inputDim);
     for (int j = 0; j < inputDim; ++j)
@@ -39,17 +39,17 @@ int main(int argc, char* argv[]) {
     cout << endl;
   }
 
-  Density pw = DeepMaxent(S, 10, 5000);
-
+  Density pw = DeepMaxent(S, 100, 10000);
+ 
   Datapoint mean(inputDim);
   Datapoint peri(inputDim);
   for (int i = 0; i < inputDim; ++i) {
     mean[i] = 0.;
-    peri[i] = 10.;
+    peri[i] = 1.;
   }
-  cout << "P(mode) = " << pw.eval(mean);
-  cout << "P(peri) = " << pw.eval(peri);
-  
+  cout << "P(mode) = " << pw.evalS(mean);
+  cout << " P(peri) = " << pw.evalS(peri) << endl;
+ 
 #if 1
   for (int i = 0; i < pw.w.size(); ++i)
     for (int j = 0; j < pw.w[i].size(); ++j)

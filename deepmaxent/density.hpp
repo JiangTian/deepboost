@@ -20,6 +20,7 @@ public:
   Density(const std::vector<std::vector<real> > & w,
 	  const std::vector<Feature*> & phi,
 	  const Dataset & S, int SpSize); //TODO: testing time
+  real evalS(const Datapoint & X) const; //evaluted on a point X with approx. normalizerS
   real evalS(int i) const; // evaluated on S[i] but is faster
   real evalSp(int i) const; // evaluated on Sp[i] but is faster
   void precomputeFactors(const Dataset & S, std::vector<real> & expFactors,
