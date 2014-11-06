@@ -18,7 +18,7 @@ real normal() {
 
 int main(int argc, char* argv[]) {
 
-#if 0 // dummy dataset
+#if 1 // dummy dataset
   Dataset S;
   int nDatapoints = 42;
   int inputDim = 10;
@@ -30,8 +30,8 @@ int main(int argc, char* argv[]) {
   }
 #endif
 
-  // Dataset S = readElNino("data/tao-all2.dat");
-  Dataset S = readIris("data/iris.data");
+  //Dataset S = readElNino("data/tao-all2.dat");
+  //Dataset S = readIris("data/iris.data");
   
   for (int i = 0; i < 10; ++i) {
     for (int j = 0; j < S[i].size(); ++j)
@@ -41,7 +41,16 @@ int main(int argc, char* argv[]) {
 
   Density pw = DeepMaxent(S, 10, 5000);
 
-#if 0
+  Datapoint mean(inputDim);
+  Datapoint peri(inputDim);
+  for (int i = 0; i < inputDim; ++i) {
+    mean[i] = 0.;
+    peri[i] = 10.;
+  }
+  cout << "P(mode) = " << pw.eval(mean);
+  cout << "P(peri) = " << pw.eval(peri);
+  
+#if 1
   for (int i = 0; i < pw.w.size(); ++i)
     for (int j = 0; j < pw.w[i].size(); ++j)
       cout << pw.w[i][j] << " ";
