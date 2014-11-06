@@ -29,6 +29,7 @@ real Step(const int best_k, const int best_j, const vector<vector<real> > & w,
   const real e2wL = exp(- 2. * wkj * Lambda);
   // TODO!!! this beta is different from the DeepMaxent beta (cf. paper)
   const real beta = (pbtp * pbm * e2wL - pbp * pbtm) / (pbtp * e2wL - pbtm);
+  cout << "beta = " << beta;
   if (abs(beta) <= beta_k)
     return -wkj;
   else if (beta > beta_k)
@@ -122,7 +123,7 @@ Density DeepMaxent(const Dataset & S, int T) {
 
   // initial distribution (all w's = 1)
   for (int i = 0; i < phi.size(); ++i)
-    w.push_back(vector<real>(phi[i]->size(), 0.));
+    w.push_back(vector<real>(phi[i]->size(), 0.1));
   Density pw(w, phi, S);
 
   // compute lambda FOR NOW beta = beta_k \forall k
@@ -153,8 +154,8 @@ Density DeepMaxent(const Dataset & S, int T) {
 	  d = 0.;
 	else
 	  d = - beta_k * sgn(eps) + eps;
-	cout << "d=" << d << " eps=" << eps << " beta_k=" << beta_k
-	     << " EphiPW=" << EphiPW[j] << " EphiS=" << EphiS[j] << endl;
+	//	cout << "d=" << d << " eps=" << eps << " beta_k=" << beta_k
+	//   << " EphiPW=" << EphiPW[j] << " EphiS=" << EphiS[j] << endl;
 	if (abs(d) > best_abs_d) {
 	  best_abs_d = abs(d);
 	  best_k = k;
@@ -168,7 +169,14 @@ Density DeepMaxent(const Dataset & S, int T) {
     cout << "k=" << best_k << " j=" << best_j << " eta=" << eta << endl;
     
     w[best_k][best_j] += eta;
-    
+
+#if 1
+    for (int i = 0; i < pw.w.size(); ++i)
+      for (int j = 0; j < pw.w[i].size(); ++j)
+	cout << pw.w[i][j] << " ";
+    cout << endl;
+#endif
+
     pw = Density(w, phi, S);
 
     real loss = 0.;
