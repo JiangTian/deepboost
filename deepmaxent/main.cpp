@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     cout << endl;
   }
 
-  Density pw = DeepMaxent(S, 10);
+  Density pw = DeepMaxent(S, 10, 5000);
 
 #if 0
   for (int i = 0; i < pw.w.size(); ++i)

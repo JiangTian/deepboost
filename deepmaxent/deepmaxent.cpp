@@ -51,7 +51,7 @@ real Step(const int best_k, const int best_j, const vector<vector<real> > & w,
 // Lambda : total range of the phi (TODO)
 // eta : size of the update of w
 // inputDim : dimension of the input
-Density DeepMaxent(const Dataset & S, int T) {
+Density DeepMaxent(const Dataset & S, int T, int SpSize) {
   // initialization
   int p = 0;
   vector<vector<real> > w;
@@ -123,7 +123,7 @@ Density DeepMaxent(const Dataset & S, int T) {
   // initial distribution (all w's = 1)
   for (int i = 0; i < phi.size(); ++i)
     w.push_back(vector<real>(phi[i]->size(), 0.));
-  Density pw(w, phi, S);
+  Density pw(w, phi, S, SpSize);
 
   // compute lambda FOR NOW beta = beta_k \forall k
   real Lambda = 0;
@@ -153,8 +153,8 @@ Density DeepMaxent(const Dataset & S, int T) {
 	  d = 0.;
 	else
 	  d = - beta_k * sgn(eps) + eps;
-	cout << "d=" << d << " eps=" << eps << " beta_k=" << beta_k
-	     << " EphiPW=" << EphiPW[j] << " EphiS=" << EphiS[j] << endl;
+	//cout << "d=" << d << " eps=" << eps << " beta_k=" << beta_k
+	//   << " EphiPW=" << EphiPW[j] << " EphiS=" << EphiS[j] << endl;
 	if (abs(d) > best_abs_d) {
 	  best_abs_d = abs(d);
 	  best_k = k;
@@ -169,11 +169,18 @@ Density DeepMaxent(const Dataset & S, int T) {
     
     w[best_k][best_j] += eta;
     
-    pw = Density(w, phi, S);
+    pw = Density(w, phi, S, SpSize);
 
     real loss = 0.;
     for (int i = 0; i < S.size(); ++i)
-      loss += -log(pw.eval(i));
+      loss += -log(pw.evalS(i));
+    loss /= S.size();
+    for (int i = 0; i < w.size(); ++i) {
+      real wnorm1 = 0;
+      for (int j = 0; j < w[i].size(); ++j)
+	wnorm1 += abs(w[i][j]);
+      loss += (beta + 2 * phi[i]->RademacherComplexity()) * wnorm1;
+    }
     cout << "loss=" << loss << endl;
   }
 

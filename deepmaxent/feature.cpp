@@ -22,9 +22,10 @@ vector<real> Feature::EphiS(const Dataset & S) const {
 
 vector<real> Feature::EphiPW(const Dataset & S, const Density & pw) const {
   vector<real> E(this->size(), 0.);
-  for (int i = 0; i < S.size(); ++i) {
-    real pwsi = pw.eval(i);
-    vector<real> phix = this->eval(S[i]);
+  //TODO: a little ugly to go get Sp in pw
+  for (int i = 0; i < pw.Sp.size(); ++i) {
+    real pwsi = pw.evalSp(i);
+    vector<real> phix = this->eval(pw.Sp[i]);
     for (int j = 0; j < this->size(); ++j)
       E[j] += pwsi * phix[j];
   }

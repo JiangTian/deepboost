@@ -4,6 +4,6 @@
 #include "common.hpp"
 #include "density.hpp"
 
-Density DeepMaxent(const Dataset & S, int T);
+Density DeepMaxent(const Dataset & S, int T, int SpSize);
 
 #endif
