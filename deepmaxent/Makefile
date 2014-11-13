@@ -1,2 +1,5 @@
 all:
-	g++ -O3 feature.cpp deepmaxent.cpp density.cpp main.cpp data.cpp
+	g++ -O3 -lopencv_core -lopencv_highgui feature.cpp deepmaxent.cpp density.cpp main.cpp data.cpp plot.cpp
+
+debug:
+	g++ -O0 -g -lopencv_core -lopencv_highgui feature.cpp deepmaxent.cpp density.cpp main.cpp data.cpp plot.cpp

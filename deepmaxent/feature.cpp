@@ -32,6 +32,17 @@ vector<real> Feature::EphiPW(const Dataset & S, const Density & pw) const {
   return E;
 }
 
+// FeatureConstant
+vector<real> FeatureConstant::eval(const Datapoint & X) const {
+  return vector<real>(1, (real)1.);
+}
+
+int FeatureConstant::size() const {return 1;}
+
+real FeatureConstant::RademacherComplexity() const {
+  return 0;
+}
+
 // FeatureRaw
 vector<real> FeatureRaw::eval(const Datapoint & X) const {
   return vector<real>(1, X[i]);

@@ -14,6 +14,16 @@ public:
   std::vector<real> EphiPW(const Dataset & S, const Density & pw) const;
 };
 
+class FeatureConstant : public Feature {
+private:
+public:
+  inline FeatureConstant()
+    :Feature() {}
+  virtual std::vector<real> eval(const Datapoint & X) const;
+  virtual int size() const;
+  virtual real RademacherComplexity() const;
+};
+
 class FeatureRaw : public Feature {
 private:
   const int i;

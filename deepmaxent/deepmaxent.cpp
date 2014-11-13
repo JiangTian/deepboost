@@ -11,11 +11,12 @@
 using namespace std;
 
 inline real sgn (real x) {
-  return (x >= 0.) ? 1. : -1.;
+  const real eps = 1e-3;
+  return (x >= -eps) ? ((x <= eps) ? 0. : 1.) : -1.;
 }
 
 real Step(const int best_k, const int best_j, const vector<vector<real> > & w, 
-	  const vector<Feature*> & phi, const int Lambda, const Dataset & S,
+	  const vector<Feature*> & phi, const real Lambda, const Dataset & S,
 	  const Density & pw, const real beta_k) {
   const int k = best_k;
   const int j = best_j;
@@ -27,15 +28,22 @@ real Step(const int best_k, const int best_j, const vector<vector<real> > & w,
   const real pbp = EphiSkj + Lambda;
   const real pbm = EphiSkj - Lambda;
   const real e2wL = exp(- 2. * wkj * Lambda);
+  //cout << "Lambda=" << Lambda << " pbtp=" << pbtp << " pbm=" << pbm << " pbp="
+  //<< pbp << " pbtm=" << pbtm << " e2wL=" << e2wL << endl;
   // TODO!!! this beta is different from the DeepMaxent beta (cf. paper)
   const real beta = (pbtp * pbm * e2wL - pbp * pbtm) / (pbtp * e2wL - pbtm);
-  cout << "beta = " << beta;
-  if (abs(beta) <= beta_k)
+  //cout << (pbtp * pbm * e2wL - pbp * pbtm) << " " << (pbtp * e2wL - pbtm) << endl;
+  //cout << "beta = " << beta << " " << endl;
+  if (abs(beta) <= beta_k) {
+    //cout << "case 1" << endl;
     return -wkj;
-  else if (beta > beta_k)
+  } else if (beta > beta_k) {
+    //cout << "case 2: " << (pbtm * (beta_k - pbp)) << " " << (pbtp * (beta_k - pbm)) << endl;
     return 0.5 / Lambda * log((pbtm * (beta_k - pbp)) / (pbtp * (beta_k - pbm)));
-  else
+  } else {
+    //cout << "case 3: " << (pbtm * (beta_k + pbp)) << " " <<  (pbtp * (beta_k + pbm)) << endl;
     return 0.5 / Lambda * log((pbtm * (beta_k + pbp)) / (pbtp * (beta_k + pbm)));
+  }
 }
 
 // S : dataset
@@ -58,18 +66,20 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
   vector<vector<real> > w;
   vector<Feature*> phi;
   const real tolerance = 1e-3;
-  real beta = 0.1; // TODO why ???
+  real beta = 0.001; // TODO why ???
   int inputDim = S[0].size();
   // TODO: check that S is consistent (all samples have same dimension)
 
   // adding all possible features
+#if 1
   //  adding raw features
   for (int i = 0; i < inputDim; ++i) {
     Feature* newFeature = new FeatureRaw(i);
     phi.push_back(newFeature);
   }
+#endif
 
-#if 0  
+#if 1
   //  adding monomial2 features	      
   for (int i = 0; i < inputDim; ++i)
     for (int j = 0; j <= i; ++j) {
@@ -87,7 +97,7 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
     phi.push_back(newFeature);
   }
 #endif
-
+#if 1
   //  adding threshold features
   {
     vector<real> sortedInput;
@@ -103,6 +113,13 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
 	phi.push_back(newFeature);
       }
     }
+  }
+#endif
+  // debug feature
+  {
+    phi.push_back(new FeatureConstant());
+    //phi.push_back(new FeatureThreshold(0, 0));
+    //phi.push_back(new FeatureThreshold(1, 0));
   }
   /*
   //  adding hinge features
@@ -125,21 +142,24 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
 
   // initial distribution (all w's = 1)
   for (int i = 0; i < phi.size(); ++i)
-    w.push_back(vector<real>(phi[i]->size(), 0.1));
+    w.push_back(vector<real>(phi[i]->size(), 0.2));
   Density pw(w, phi, S, SpSize);
 
   // compute lambda FOR NOW beta = beta_k \forall k
   real Lambda = 0;
   for (int i = 0; i < S.size(); ++i)
     for (int j = 0; j < S[i].size(); ++j)
-      Lambda = max(Lambda, abs(S[i][j]));
+      Lambda = max(Lambda, S[i][j]*S[i][j]);
   Lambda += beta;
+  //Lambda = 1.+sqrt(8.);
+  Lambda = 101.;
 
   cout << "size of phi=" << phi.size() << endl;
   
   // main loop (changing the w's)
   for (int t = 0; t < T; ++t) {
     real best_abs_d = -1.;
+    real best_d = 0.;
     real best_beta_k = 0.;
     int best_k, best_j = 0;
     for (int k = 0; k < phi.size(); ++k) {
@@ -156,10 +176,14 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
 	  d = 0.;
 	else
 	  d = - beta_k * sgn(eps) + eps;
+	//d = eps + beta_k * sgn(wkj);
+	
 	//cout << "d=" << d << " eps=" << eps << " beta_k=" << beta_k
-	//   << " EphiPW=" << EphiPW[j] << " EphiS=" << EphiS[j] << endl;
+	// << " EphiPW=" << EphiPW[j] << " EphiS=" << EphiS[j] << endl;
 	if (abs(d) > best_abs_d) {
+	  //cout << "d:" << d << endl;
 	  best_abs_d = abs(d);
+	  best_d = d;
 	  best_k = k;
 	  best_j = j;
 	  best_beta_k = beta_k;
@@ -168,7 +192,28 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
     }
     real eta = Step(best_k, best_j, w, phi, Lambda, S, pw, best_beta_k);
 
-    cout << "k=" << best_k << " j=" << best_j << " eta=" << eta << endl;
+    //cout << "k=" << best_k << " j=" << best_j << " eta=" << eta
+    //<< " d=" << best_d << endl;
+
+    /*
+    { // debug: compute gradient with finite differences
+      real eps = 1e-3;
+      w[best_k][best_j] += eps;
+      Density pwPlus = Density(w, phi, S, SpSize);
+      pwPlus.Sp = pw.Sp;
+      pwPlus.precomputeFactors(pwPlus.Sp, pwPlus.factorsSp, pwPlus.expFactorsSp,
+			       pwPlus.normalizerSp, pwPlus.lognormalizerSp);
+      real fPlus = pwPlus.lossS(beta);
+      w[best_k][best_j] -= 2.*eps;
+      Density pwMinus = Density(w, phi, S, SpSize);
+      pwMinus.Sp = pw.Sp;
+      pwMinus.precomputeFactors(pwMinus.Sp, pwMinus.factorsSp, pwMinus.expFactorsSp,
+			       pwMinus.normalizerSp, pwMinus.lognormalizerSp);
+      real fMinus = pwMinus.lossS(beta);
+      w[best_k][best_j] += eps;
+      cout << "real gradient = " << (fPlus - fMinus) / (2*eps) << endl;
+    }
+    */
     
     w[best_k][best_j] += eta;
 
@@ -181,17 +226,8 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
     
     pw = Density(w, phi, S, SpSize);
 
-    real loss = 0.;
-    for (int i = 0; i < S.size(); ++i)
-      loss += -log(pw.evalS(i));
-    loss /= S.size();
-    for (int i = 0; i < w.size(); ++i) {
-      real wnorm1 = 0;
-      for (int j = 0; j < w[i].size(); ++j)
-	wnorm1 += abs(w[i][j]);
-      loss += (beta + 2 * phi[i]->RademacherComplexity()) * wnorm1;
-    }
-    cout << "loss=" << loss << endl;
+    cout << "lossS=" << pw.lossS(beta) << endl;
+
   }
 
   return pw;
