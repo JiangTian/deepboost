@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <vector>
 #include <cstdlib>
+#include <limits>
 #include <cfloat>
 #include <cassert>
 #include "deepmaxent.hpp"
@@ -104,14 +105,14 @@ real eval_raw_iris(real x, real y) {
 
 real eval_pw_at_point_iris(real x, real y) {
   Datapoint p(4);
-  p[0] = x;
-  p[1] = y;
+  p[2] = x;
+  p[3] = y;
  
   real sum = 0.;
-  for (real u = 0; u < 10; u += 0.5) {
-    p[2] = u;
-    for (real v = 0; v < 10; v += 0.5) {
-      p[3] = v;
+  for (real u = 0; u < 10; u += 0.2) {
+    p[0] = u;
+    for (real v = 0; v < 10; v += 0.2) {
+      p[1] = v;
       sum += pointer_to_pw->evalS(p);
     }
   }
@@ -128,10 +129,25 @@ int main(int argc, char* argv[]) {
   Dataset S = getDataset(datatype);
   pointer_to_S = &S;
 
-  //  gridPlot(&eval_raw_iris, 3.5, 8.5, 0.5, 5.5);
-  //gridPlot(&eval_raw_iris, 0, 8, 0, 3);
+  // Normalize data to be between -1 and 1
+  {
+    int inputSize = S[0].size();
+    vector<real> xmin(inputSize, numeric_limits<real>::max());
+    vector<real> xmax(inputSize, -numeric_limits<real>::max());
+    for (int i = 0; i < S.size(); ++i)
+      for (int j = 0; j < S[i].size(); ++j) {
+	xmin[j] = min(xmin[j], S[i][j]);
+	xmax[j] = max(xmax[j], S[i][j]);
+      }
+    for (int i = 0; i < S.size(); ++i)
+      for (int j = 0; j < S[i].size(); ++j)
+	S[i][j] = 2. * (S[i][j] - xmin[j]) / (xmax[j] - xmin[j]) - 1;
+  }
+
+  //gridPlot(&eval_raw_iris, 3.5, 8.5, 0.5, 5.5);
+  gridPlot(&eval_raw_iris, -1, 1, -1, 1);
   
-  Density pw = DeepMaxent(S, 10000, 10000);
+  Density pw = DeepMaxent(S, 3000, 10000);
   pointer_to_pw = &pw;
   
   cout << "W=" << endl;
@@ -141,13 +157,13 @@ int main(int argc, char* argv[]) {
   
   switch(datatype) {
   case(DATASET_DUMMY_UNIFORM):
-    gridPlot(&eval_pw_at_point_2, -2, 2, -2, 2);
+    gridPlot(&eval_pw_at_point_2, -1, 1, -1, 1);
     break;
   case(DATASET_DUMMY_GAUSSIAN):
-    gridPlot(&eval_pw_at_point_2, -2, 2, -2, 2);
+    gridPlot(&eval_pw_at_point_2, -1, 1, -1, 1);
     break;
   case(DATASET_IRIS):
-    gridPlot(&eval_pw_at_point_iris, 3, 9, 0, 6);
+    gridPlot(&eval_pw_at_point_iris, -1, 1, -1, 1);
     break;
   case(DATASET_ELNINO):
     assert(0); //Not implemented yet

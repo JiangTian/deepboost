@@ -106,7 +106,8 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
       for (int j = 0; j < S.size(); ++j)
 	sortedInput.push_back(S[j][i]);
       sort(sortedInput.begin(), sortedInput.end());
-      for (int j = 1; j < sortedInput.size(); ++j) {
+      //for (int j = 1; j < sortedInput.size(); ++j) {
+      for (int j = 1; j < sortedInput.size(); j += 10) { // NOT ALL THRESHOLDS
 	real threshold = 0.5 * (sortedInput[j-1] + sortedInput[j]);
 	Feature* newFeature = new FeatureThreshold(i, threshold);
 	// TODO (or not): this is never destroyed
@@ -142,7 +143,7 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
 
   // initial distribution (all w's = 1)
   for (int i = 0; i < phi.size(); ++i)
-    w.push_back(vector<real>(phi[i]->size(), 0.2));
+    w.push_back(vector<real>(phi[i]->size(), 0.));
   Density pw(w, phi, S, SpSize);
 
   // compute lambda FOR NOW beta = beta_k \forall k
@@ -150,9 +151,7 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
   for (int i = 0; i < S.size(); ++i)
     for (int j = 0; j < S[i].size(); ++j)
       Lambda = max(Lambda, S[i][j]*S[i][j]);
-  Lambda += beta;
-  //Lambda = 1.+sqrt(8.);
-  Lambda = 101.;
+  Lambda += beta + 0.1;
 
   cout << "size of phi=" << phi.size() << endl;
   
@@ -181,7 +180,7 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
 	//cout << "d=" << d << " eps=" << eps << " beta_k=" << beta_k
 	// << " EphiPW=" << EphiPW[j] << " EphiS=" << EphiS[j] << endl;
 	if (abs(d) > best_abs_d) {
-	  //cout << "d:" << d << endl;
+	//if (t % phi.size() == k) { // DEBUG
 	  best_abs_d = abs(d);
 	  best_d = d;
 	  best_k = k;
