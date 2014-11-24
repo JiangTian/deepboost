@@ -3,6 +3,6 @@
 
 #include "common.hpp"
 
-void gridPlot(real(*f)(real, real), real wmin, real wmax, real hmin, real hmax);
+void gridPlot(real(*f)(real, real), real wmin, real wmax, real hmin, real hmax, int id);
 
 #endif

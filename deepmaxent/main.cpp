@@ -88,7 +88,7 @@ real eval_pw_at_point_2(real x, real y) {
   Datapoint p(2);
   p[0] = x;
   p[1] = y;
-  return pointer_to_pw->evalS(p);
+  return pointer_to_pw->eval(p);
 }
 
 Dataset* pointer_to_S;
@@ -113,14 +113,14 @@ real eval_pw_at_point_iris(real x, real y) {
     p[0] = u;
     for (real v = 0; v < 10; v += 0.2) {
       p[1] = v;
-      sum += pointer_to_pw->evalS(p);
+      sum += pointer_to_pw->eval(p);
     }
   }
   return sum;
  
   //p[2] = 4.;
   //p[3] = 2.;
-  //return pointer_to_pw->evalS(p);
+  //return pointer_to_pw->eval(p);
 }
 
 int main(int argc, char* argv[]) {
@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
   dataset_type datatype = DATASET_IRIS;
   Dataset S = getDataset(datatype);
   pointer_to_S = &S;
-
+  
   // Normalize data to be between -1 and 1
   {
     int inputSize = S[0].size();
@@ -145,9 +145,9 @@ int main(int argc, char* argv[]) {
   }
 
   //gridPlot(&eval_raw_iris, 3.5, 8.5, 0.5, 5.5);
-  gridPlot(&eval_raw_iris, -1, 1, -1, 1);
+  gridPlot(&eval_raw_iris, -1, 1, -1, 1, 0);
   
-  Density pw = DeepMaxent(S, 3000, 10000);
+  Density pw = DeepMaxent(S, 1000, 8);
   pointer_to_pw = &pw;
   
   cout << "W=" << endl;
@@ -157,13 +157,13 @@ int main(int argc, char* argv[]) {
   
   switch(datatype) {
   case(DATASET_DUMMY_UNIFORM):
-    gridPlot(&eval_pw_at_point_2, -1, 1, -1, 1);
+    gridPlot(&eval_pw_at_point_2, -1, 1, -1, 1, 1);
     break;
   case(DATASET_DUMMY_GAUSSIAN):
-    gridPlot(&eval_pw_at_point_2, -1, 1, -1, 1);
+    gridPlot(&eval_pw_at_point_2, -1, 1, -1, 1, 1);
     break;
   case(DATASET_IRIS):
-    gridPlot(&eval_pw_at_point_iris, -1, 1, -1, 1);
+    gridPlot(&eval_pw_at_point_iris, -1, 1, -1, 1, 1);
     break;
   case(DATASET_ELNINO):
     assert(0); //Not implemented yet

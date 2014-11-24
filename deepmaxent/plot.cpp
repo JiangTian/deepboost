@@ -14,16 +14,16 @@ int roundI(Real x) {
   return (int)(floor(x + (Real)0.5));
 }
 
-void display(const matr & im) {
+void display(const matr & im, int id) {
   Real minx, maxx;
   minMaxLoc(im, &minx, &maxx);
   matr im2 = (im - minx) / (maxx - minx);
-  namedWindow("display0");
-  imshow("display0", im2);
+  namedWindow("display" + id);
+  imshow("display" + id, im2);
   cvWaitKey(0);
 }
 
-void gridPlot(Real(*f)(Real, Real), Real wmin, Real wmax, Real hmin, Real hmax) {
+void gridPlot(Real(*f)(Real, Real), Real wmin, Real wmax, Real hmin, Real hmax, int id) {
   int w = 400, h = 400; // size of the window in pixel
   //Real wmin = -2, wmax = 2; // range of w
   //Real hmin = -2, hmax = 2; // range of h
@@ -45,7 +45,7 @@ void gridPlot(Real(*f)(Real, Real), Real wmin, Real wmax, Real hmin, Real hmax) 
 
   //cout << imSmall << endl;
   
-  display(im);
+  display(im, id);
 }
 
 /*

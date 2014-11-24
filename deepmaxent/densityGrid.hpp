@@ -10,15 +10,19 @@ class DensityGrid {
 public:
   std::vector<std::vector<real> > w;
   std::vector<Feature*> phi;
-  real normalizer;
+  std::vector<real> factorsS;
+  std::vector<std::vector<real> > EphiPWvals;
+  real logNormalizer;
+  real meanFactorsS;
 public:
   DensityGrid() {}
+  // note that S should be included in worldGrid
   DensityGrid(const std::vector<std::vector<real> > & w,
-	  const std::vector<Feature*> & phi,
-	  const Dataset & S, const Dataset & worldGrid);
+	      const std::vector<Feature*> & phi,
+	      const Dataset & S, const Dataset & worldGrid);
   real eval(const Datapoint & X) const;
-  real evalS(int i) const; // evaluated on S[i] but is faster
-  real loss(const Dataset & S, real beta) const;
+  real loss(real beta) const;
+  std::vector<real> EphiPW(int j) const; // expectation of the feature j under pw
 };
 
 #endif

@@ -11,7 +11,6 @@ public:
   virtual int size() const = 0;
   virtual real RademacherComplexity() const = 0;
   std::vector<real> EphiS(const Dataset & S) const;
-  std::vector<real> EphiPW(const Dataset & S, const Density & pw) const;
 };
 
 class FeatureConstant : public Feature {

@@ -7,7 +7,6 @@
 #include <cstdlib>
 #include "common.hpp"
 #include "feature.hpp"
-#include "density.hpp"
 using namespace std;
 
 inline real sgn (real x) {
@@ -21,8 +20,8 @@ real Step(const int best_k, const int best_j, const vector<vector<real> > & w,
   const int k = best_k;
   const int j = best_j;
   const real wkj = w[k][j];
-  const real EphiPWkj = (phi[k]->EphiPW(S, pw))[j];
-  const real EphiSkj = (phi[k]->EphiS(S))[j];
+  const real EphiPWkj = pw.EphiPW(k)[j];
+  const real EphiSkj = phi[k]->EphiS(S)[j];
   const real pbtp = EphiPWkj + Lambda;
   const real pbtm = EphiPWkj - Lambda;
   const real pbp = EphiSkj + Lambda;
@@ -97,7 +96,7 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
     phi.push_back(newFeature);
   }
 #endif
-#if 1
+#if 0
   //  adding threshold features
   {
     vector<real> sortedInput;
@@ -140,18 +139,42 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
     }
     }*/
 
-
-  // initial distribution (all w's = 1)
-  for (int i = 0; i < phi.size(); ++i)
-    w.push_back(vector<real>(phi[i]->size(), 0.));
-  Density pw(w, phi, S, SpSize);
-
   // compute lambda FOR NOW beta = beta_k \forall k
   real Lambda = 0;
   for (int i = 0; i < S.size(); ++i)
     for (int j = 0; j < S[i].size(); ++j)
       Lambda = max(Lambda, S[i][j]*S[i][j]);
   Lambda += beta + 0.1;
+
+#ifdef USE_DENSITY_GRID
+  Dataset worldGrid;
+  vector<int> iterator(inputDim, 0);
+  int maxK = SpSize+1;
+  while (true) {
+    Datapoint p(inputDim);
+    for (int i = 0; i < inputDim; ++i)
+      p[i] = Lambda * (2. * (real)iterator[i] / (maxK-1) - 1.);
+    worldGrid.push_back(p);
+    int i = 0;
+    while((i < inputDim) && (iterator[i] == maxK-1))
+      ++i;
+    if (i == inputDim)
+      break;
+    for (int j = 0; j < i; ++j)
+      iterator[j] = 0;
+    iterator[i] += 1;
+  }
+#endif
+
+  // initial distribution (all w's = 1)
+  for (int i = 0; i < phi.size(); ++i)
+    w.push_back(vector<real>(phi[i]->size(), 0.));
+#ifdef USE_DENSITY_SAMPLE
+  Density pw(w, phi, S, SpSize);
+#endif
+#ifdef USE_DENSITY_GRID
+  Density pw(w, phi, S, worldGrid);
+#endif
 
   cout << "size of phi=" << phi.size() << endl;
   
@@ -163,7 +186,7 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
     int best_k, best_j = 0;
     for (int k = 0; k < phi.size(); ++k) {
       real beta_k = 2. * phi[k]->RademacherComplexity() + beta;
-      const vector<real> EphiPW = phi[k]->EphiPW(S, pw);
+      const vector<real> EphiPW = pw.EphiPW(k);
       const vector<real> EphiS = phi[k]->EphiS(S);
       for (int j = 0; j < phi[k]->size(); ++j) {
 	real d;
@@ -222,10 +245,15 @@ Density DeepMaxent(const Dataset & S, int T, int SpSize) {
 	cout << pw.w[i][j] << " ";
     cout << endl;
 #endif
-    
-    pw = Density(w, phi, S, SpSize);
 
-    cout << "lossS=" << pw.lossS(beta) << endl;
+#ifdef USE_DENSITY_SAMPLE
+    pw = Density(w, phi, S, SpSize);
+#endif
+#ifdef USE_DENSITY_GRID
+    pw = Density(w, phi, S, worldGrid);
+#endif
+
+    cout << "lossS=" << pw.loss(beta) << endl;
 
   }
 
